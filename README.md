@@ -1,2 +1,2 @@
 # MemoryMatch
-Görsel Hazılan ile Görselleri Eşle
+Görsel Hafızan ile Görselleri Eşle
