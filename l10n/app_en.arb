@@ -1,0 +1,23 @@
+{
+  "appTitle": "Memory Match",
+  "startGame": "Start Game",
+  "selectCategory": "Select Category",
+  "selectDifficulty": "Select Difficulty",
+  "total": "Total",
+  "best": "Best",
+  "games": "Games",
+  "turkish": "Turkish",
+  "english": "English",
+  "rememberCards": "Remember Cards",
+  "restart": "Restart",
+  "home": "Home",
+  "congrats": "Congratulations!",
+  "youFinished": "You finished the game!",
+  "score": "Score",
+  "moves": "Moves",
+  "points": "Points",
+  "playAgain": "Play Again",
+  "subtitle": "Exercise your brain",
+  "tagline": "Find matching pairs",
+  "playNow": "Play Now"
+}

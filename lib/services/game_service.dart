@@ -163,9 +163,12 @@ class GameService {
     final cards = <GameCard>[];
     int cardId = 0;
 
+    //print('Generating cards for category: $category, difficulty: $difficulty');
+    //print('Selected images: $selectedImages');
     // Her görsel için iki kart oluştur
     for (final imageName in selectedImages) {
       final imagePath = '${category.assetPath}$imageName';
+      print('Adding card image: $imagePath');
       cards.add(GameCard(
         imagePath: imagePath,
         id: cardId,
@@ -176,7 +179,7 @@ class GameService {
       ));
       cardId++;
     }
-
+    //print('Total cards generated: ${cards.length}, Expected: ${difficulty.totalCards}');
     // Kartları karıştır
     cards.shuffle(Random());
 

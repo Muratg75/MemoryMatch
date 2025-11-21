@@ -19,5 +19,11 @@
   "language": "Language",
   "turkish": "Turkish",
   "english": "English",
-  "tagline": "Remember and match the cards!"
+  "tagline": "Remember and match the cards!",
+  "easy": "Easy",
+  "medium": "Medium",
+  "hard": "Hard",
+  "expert": "Expert",
+  "restart": "Restart",
+  "points": "Points"
 }

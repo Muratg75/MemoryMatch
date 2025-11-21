@@ -1,0 +1,23 @@
+{
+  "appTitle": "Hafıza Oyunu",
+  "startGame": "Oyuna Başla",
+  "selectCategory": "Kategori Seç",
+  "selectDifficulty": "Zorluk Seç",
+  "total": "Toplam",
+  "best": "En İyi",
+  "games": "Oyunlar",
+  "turkish": "Türkçe",
+  "english": "İngilizce",
+  "rememberCards": "Kartları Hatırla",
+  "restart": "Yeniden Başlat",
+  "home": "Ana Sayfa",
+  "congrats": "Tebrikler!",
+  "youFinished": "Oyunu tamamladınız!",
+  "score": "Skor",
+  "moves": "Hamle",
+  "points": "Puan",
+  "playAgain": "Tekrar Oyna",
+  "subtitle": "Beynini çalıştır",
+  "tagline": "Eşleşen kartları bul",
+  "playNow": "Şimdi Oyna"
+}

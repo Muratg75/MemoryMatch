@@ -7,7 +7,8 @@ import '../models/game_card.dart';
 import '../models/score_model.dart';
 import '../services/game_service.dart';
 import '../services/score_service.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+//import 'package:flutter_gen/l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 
 class GameScreen extends StatefulWidget {
   final GameCategory category;

@@ -4,7 +4,8 @@ import '../models/game_difficulty.dart';
 import '../models/score_model.dart';
 import '../services/score_service.dart';
 import 'game_screen.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+//import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../l10n/app_localizations.dart';
 import '../main.dart';
 import 'dart:developer' as dev;
 
