@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/game_category.dart';
 import '../models/game_difficulty.dart';
 import '../models/score_model.dart';
 import '../services/score_service.dart';
 import 'game_screen.dart';
-//import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
-import 'dart:developer' as dev;
+import '../widgets/animated_background.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/game_button.dart';
+import '../theme/app_theme.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -30,29 +33,19 @@ class _HomeScreenState extends State<HomeScreen> {
   String getDifficultyName(String keyName) {
     if (AppLocalizations.of(context)!.localeName == 'tr') {
       switch (keyName) {
-        case 'easy':
-          return 'Kolay';
-        case 'medium':
-          return 'Orta';
-        case 'hard':
-          return 'Zor';
-        case 'expert':
-          return 'Uzman';
-        case 'professional':
-          return 'Profesyonel';
+        case 'easy': return 'Kolay';
+        case 'medium': return 'Orta';
+        case 'hard': return 'Zor';
+        case 'expert': return 'Uzman';
+        case 'professional': return 'Profesyonel';
       }
     } else {
       switch (keyName) {
-        case 'easy':
-          return 'Easy';
-        case 'medium':
-          return 'Medium';
-        case 'hard':
-          return 'Hard';
-        case 'expert':
-          return 'Expert';
-        case 'professional':
-          return 'Professional';
+        case 'easy': return 'Easy';
+        case 'medium': return 'Medium';
+        case 'hard': return 'Hard';
+        case 'expert': return 'Expert';
+        case 'professional': return 'Professional';
       }
     }
     return keyName;
@@ -61,25 +54,17 @@ class _HomeScreenState extends State<HomeScreen> {
   String getCategoryName(String keyName) {
     if (AppLocalizations.of(context)!.localeName == 'tr') {
       switch (keyName) {
-        case 'fruits':
-          return 'Meyveler';
-        case 'vegetables':
-          return 'Sebzeler';
-        case 'animals':
-          return 'Hayvanlar';
-        case 'flags':
-          return 'Bayraklar';
+        case 'fruits': return 'Meyveler';
+        case 'vegetables': return 'Sebzeler';
+        case 'animals': return 'Hayvanlar';
+        case 'flags': return 'Bayraklar';
       }
     } else {
       switch (keyName) {
-        case 'fruits':
-          return 'Fruits';
-        case 'vegetables':
-          return 'Vegetables';
-        case 'animals':
-          return 'Animals';
-        case 'flags':
-          return 'Flags';
+        case 'fruits': return 'Fruits';
+        case 'vegetables': return 'Vegetables';
+        case 'animals': return 'Animals';
+        case 'flags': return 'Flags';
       }
     }
     return keyName;
@@ -95,112 +80,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: ElevatedButton(
-            onPressed: selectedCategory != null ? _startGame : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF667eea),
-              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 5,
-            ),
-            child: Text(
-              AppLocalizations.of(context)!.startGame,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
-        ),
+      extendBody: true,
+      body: AnimatedBackground(
         child: SafeArea(
           child: Column(
             children: [
-              // Üst bar skor gösterimi
               _buildTopBar(),
-              // Ana içerik
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Başlık
-                        // Text(
-                        //   AppLocalizations.of(context)!.appTitle,
-                        //   style: const TextStyle(
-                        //     fontSize: 32,
-                        //     fontWeight: FontWeight.bold,
-                        //     color: Colors.white,
-                        //     shadows: [
-                        //       Shadow(
-                        //         offset: Offset(2, 2),
-                        //         blurRadius: 4,
-                        //         color: Colors.black26,
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ),
-                        // const SizedBox(height: 4),
-                        // Text(
-                        //   AppLocalizations.of(context)!.subtitle,
-                        //   style: const TextStyle(
-                        //     fontSize: 24,
-                        //     fontWeight: FontWeight.w300,
-                        //     color: Colors.white70,
-                        //   ),
-                        // ),
-                        const SizedBox(height: 8),
-
-                        // Kategori Seçimi
-                        Text(
-                          AppLocalizations.of(context)!.selectCategory,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        ...GameCategory.values
-                            .map((category) => _buildCategoryCard(category))
-                            .toList(),
-
-                        const SizedBox(height: 10),
-
-                        // Zorluk Seviyesi
-                        Text(
-                          AppLocalizations.of(context)!.selectDifficulty,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        _buildDifficultySelector(),
-                        const SizedBox(height: 8),
-                      ],
-                    ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: selectedCategory == null
+                        ? _buildStep1(key: const ValueKey('step1'))
+                        : _buildStep2(key: const ValueKey('step2')),
                   ),
                 ),
               ),
@@ -211,77 +104,100 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildStep1({Key? key}) {
+    return Column(
+      key: key,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          AppLocalizations.of(context)!.selectCategory,
+          style: AppTheme.displayMedium,
+        ).animate().fadeIn().slideX(),
+        
+        const SizedBox(height: 16),
+        
+        ...GameCategory.values.asMap().entries.map((entry) {
+          return _buildCategoryCard(entry.value, entry.key);
+        }),
+      ],
+    );
+  }
+
+  Widget _buildStep2({Key? key}) {
+    return Column(
+      key: key,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            IconButton(
+              onPressed: () => setState(() => selectedCategory = null),
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.1),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context)!.selectDifficulty,
+                style: AppTheme.displayMedium,
+              ),
+            ),
+          ],
+        ).animate().fadeIn().slideX(),
+        
+        const SizedBox(height: 24),
+        
+        _buildDifficultySelector(),
+      ],
+    );
+  }
+
   Widget _buildTopBar() {
-    return Container(
+    return GlassContainer(
+      margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Sol taraf - Logo ve başlık
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.psychology,
-                  size: 20,
-                  color: Color(0xFF667eea),
+                  size: 24,
+                  color: Colors.white,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Text(
                 AppLocalizations.of(context)!.appTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTheme.bodyLarge,
               ),
             ],
           ),
-          // Sağ taraf - Skor bilgileri
           Row(
             children: [
               if (userScore != null) ...[
                 _buildScoreItem(
-                  icon: Icons.stars,
+                  icon: Icons.stars_rounded,
                   label: AppLocalizations.of(context)!.total,
                   value: userScore!.totalScore.toString(),
                 ),
-                const SizedBox(width: 16),
-                _buildScoreItem(
-                  icon: Icons.emoji_events,
-                  label: AppLocalizations.of(context)!.best,
-                  value: userScore!.bestScore.toString(),
-                ),
-                const SizedBox(width: 16),
-                _buildScoreItem(
-                  icon: Icons.games,
-                  label: AppLocalizations.of(context)!.games,
-                  value: userScore!.gamesPlayed.toString(),
-                ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
               ],
               _buildLanguageMenu(),
             ],
           ),
         ],
       ),
-    );
+    ).animate().slideY(begin: -1, end: 0, duration: 500.ms, curve: Curves.easeOutBack);
   }
 
   Widget _buildScoreItem({
@@ -291,27 +207,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 16,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          children: [
+            Text(
+              value,
+              style: AppTheme.bodyLarge.copyWith(fontSize: 16),
+            ),
+            const SizedBox(width: 4),
+            Icon(icon, color: AppTheme.tertiaryColor, size: 16),
+          ],
         ),
         Text(
           label,
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 10,
-          ),
+          style: AppTheme.bodyMedium.copyWith(fontSize: 10),
         ),
       ],
     );
@@ -319,7 +229,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildLanguageMenu() {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.language, color: Colors.white),
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
+          shape: BoxShape.circle,
+        ),
+        child: const Icon(Icons.language, color: Colors.white, size: 20),
+      ),
+      color: AppTheme.darkBackground,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       onSelected: (value) {
         if (value == 'tr') {
           MemoryMatchApp.of(context)?.setLocale(const Locale('tr'));
@@ -330,113 +249,112 @@ class _HomeScreenState extends State<HomeScreen> {
       itemBuilder: (context) => [
         PopupMenuItem(
           value: 'tr',
-          child: Text(AppLocalizations.of(context)!.turkish),
+          child: Text('Türkçe', style: AppTheme.bodyMedium),
         ),
         PopupMenuItem(
           value: 'en',
-          child: Text(AppLocalizations.of(context)!.english),
+          child: Text('English', style: AppTheme.bodyMedium),
         ),
       ],
     );
   }
 
-  Widget _buildCategoryCard(GameCategory category) {
-    final isSelected = selectedCategory == category;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 5),
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            selectedCategory = category;
-          });
-        },
-        borderRadius: BorderRadius.circular(15),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: isSelected ? Colors.white : Colors.transparent,
-              width: 2,
-            ),
+  Widget _buildCategoryCard(GameCategory category, int index) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () => setState(() => selectedCategory = category),
+        child: GlassContainer(
+          padding: const EdgeInsets.all(16),
+          opacity: 0.05,
+          border: Border.all(
+            color: Colors.white.withOpacity(0.1),
+            width: 1,
           ),
           child: Row(
             children: [
-              Icon(
-                _getCategoryIcon(category),
-                color: isSelected ? const Color(0xFF667eea) : Colors.white,
-                size: 24,
-              ),
-              const SizedBox(width: 15),
-              Text(
-                getCategoryName(category.name),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? const Color(0xFF667eea) : Colors.white,
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
                 ),
+                child: Icon(
+                  _getCategoryIcon(category),
+                  color: Colors.white,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  getCategoryName(category.name),
+                  style: AppTheme.bodyLarge.copyWith(
+                    fontSize: 20,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: Colors.white54,
+                size: 24,
               ),
             ],
           ),
         ),
       ),
-    );
+    ).animate().fadeIn(delay: (100 * index).ms).slideX(begin: 0.2, end: 0);
   }
 
   Widget _buildDifficultySelector() {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(15),
-      ),
       child: Column(
-        textDirection: TextDirection.ltr,
-        spacing: 0.0,
         children: GameDifficulty.values.map((difficulty) {
-          late String difficultyName = getDifficultyName(difficulty.name);
-          final isSelected = selectedDifficulty == difficulty;
-          return RadioListTile<GameDifficulty>(
-            value: difficulty,
-            groupValue: selectedDifficulty,
-            onChanged: (value) {
-              setState(() {
-                selectedDifficulty = value!;
-              });
+          return InkWell(
+            onTap: () {
+              selectedDifficulty = difficulty;
+              _startGame();
             },
-            title: Text(
-              difficultyName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w300,
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    getDifficultyName(difficulty.name),
+                    style: AppTheme.bodyMedium.copyWith(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 18,
+                    ),
+                  ),
+                  const Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 28,
+                  ),
+                ],
               ),
             ),
-            // subtitle: Text(
-            //   '${difficulty.totalCards} kart',
-            //   style: const TextStyle(
-            //     color: Colors.white70,
-            //   ),
-            // ),
-            activeColor: Colors.white,
-            selected: isSelected,
           );
         }).toList(),
       ),
-    );
+    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0);
   }
 
   IconData _getCategoryIcon(GameCategory category) {
     switch (category) {
-      case GameCategory.fruits:
-        return Icons.apple;
-      case GameCategory.animals:
-        return Icons.pets;
-      case GameCategory.flags:
-        return Icons.flag;
-      case GameCategory.vegetables:
-        return Icons.food_bank;
+      case GameCategory.fruits: return Icons.apple;
+      case GameCategory.animals: return Icons.pets;
+      case GameCategory.flags: return Icons.flag;
+      case GameCategory.vegetables: return Icons.eco;
     }
   }
 
@@ -451,9 +369,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
-      // Oyun ekranından dönünce skoru tazele
       await _loadUserScore();
-      setState(() {});
+      if (mounted) {
+        setState(() {
+          selectedCategory = null; // Oyun bitip ana ekrana dönüldüğünde kategori seçimiyle başlaması için
+        });
+      }
     }
   }
 }

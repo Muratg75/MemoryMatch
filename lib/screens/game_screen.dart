@@ -1,14 +1,17 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../models/game_category.dart';
 import '../models/game_difficulty.dart';
 import '../models/game_card.dart';
-import '../models/score_model.dart';
 import '../services/game_service.dart';
 import '../services/score_service.dart';
-//import 'package:flutter_gen/l10n/app_localizations.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/animated_background.dart';
+import '../widgets/glass_container.dart';
+import '../widgets/game_button.dart';
+import '../theme/app_theme.dart';
 
 class GameScreen extends StatefulWidget {
   final GameCategory category;
@@ -70,20 +73,38 @@ class _GameScreenState extends State<GameScreen> {
     super.dispose();
   }
 
+  String getCategoryName(String keyName) {
+    if (AppLocalizations.of(context)!.localeName == 'tr') {
+      switch (keyName) {
+        case 'fruits': return 'Meyveler';
+        case 'vegetables': return 'Sebzeler';
+        case 'animals': return 'Hayvanlar';
+        case 'flags': return 'Bayraklar';
+      }
+    } else {
+      switch (keyName) {
+        case 'fruits': return 'Fruits';
+        case 'vegetables': return 'Vegetables';
+        case 'animals': return 'Animals';
+        case 'flags': return 'Flags';
+      }
+    }
+    return keyName;
+  }
+
+  IconData _getCategoryIcon(GameCategory category) {
+    switch (category) {
+      case GameCategory.fruits: return Icons.apple;
+      case GameCategory.animals: return Icons.pets;
+      case GameCategory.flags: return Icons.flag;
+      case GameCategory.vegetables: return Icons.eco;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
-        ),
+      body: AnimatedBackground(
         child: SafeArea(
           child: Column(
             children: [
@@ -100,241 +121,202 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return GlassContainer(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Geri dön butonu
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
+          Expanded(
+            child: Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withOpacity(0.1),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${AppLocalizations.of(context)!.score}: $score',
+                      style: AppTheme.bodyLarge,
+                    ),
+                    Text(
+                      '${AppLocalizations.of(context)!.moves}: $moves',
+                      style: AppTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          // Skor ve hamle sayısı
-          Column(
-            children: [
-              Text(
-                'Skor: $score',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          Visibility(
+            visible: isShowingCards,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: Text(
+              '$remainingSeconds',
+              style: AppTheme.displayLarge.copyWith(
+                fontSize: 32,
+                color: AppTheme.secondaryColor,
+              ),
+            ).animate(onPlay: (c) => c.repeat()).scale(duration: 1.seconds),
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.secondaryColor.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _getCategoryIcon(widget.category),
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      getCategoryName(widget.category.name),
+                      style: AppTheme.bodyMedium.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
-              Text(
-                'Hamle: $moves',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          // Kategori
-          Text(
-            widget.category.displayName,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
             ),
           ),
         ],
       ),
-    );
+    ).animate().slideY(begin: -1, end: 0);
   }
 
   Widget _buildGameBoard() {
-    if (isShowingCards) {
-      return _buildShowCardsView();
-    }
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Ekran boyutlarını al
         final screenWidth = constraints.maxWidth;
         final screenHeight = constraints.maxHeight;
-
-        // Padding ve spacing hesaplamaları
         const horizontalPadding = 20.0;
-        const verticalPadding = 20.0;
+        const verticalPadding = 10.0;
         const cardSpacing = 10.0;
-
-        // Kullanılabilir alan
         final availableWidth = screenWidth - (horizontalPadding * 2);
         final availableHeight = screenHeight - (verticalPadding * 2);
-
-        // Grid boyutları
         final columns = widget.difficulty.columns;
         final rows = widget.difficulty.rows;
-
-        // Kart boyutlarını hesapla
-        final cardWidth =
-            (availableWidth - (cardSpacing * (columns - 1))) / columns;
-        final cardHeight =
-            (availableHeight - (cardSpacing * (rows - 1))) / rows;
-
-        // En küçük boyutu kullan (kare şeklinde kalmak için)
+        final cardWidth = (availableWidth - (cardSpacing * (columns - 1))) / columns;
+        final cardHeight = (availableHeight - (cardSpacing * (rows - 1))) / rows;
         final cardSize = cardWidth < cardHeight ? cardWidth : cardHeight;
 
-        return Container(
-          padding: const EdgeInsets.all(horizontalPadding),
-          child: GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: columns,
-              crossAxisSpacing: cardSpacing,
-              mainAxisSpacing: cardSpacing,
-              childAspectRatio: 1,
-              mainAxisExtent: cardSize, // Sabit yükseklik belirle
+        return Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: cardSpacing,
+                mainAxisSpacing: cardSpacing,
+                childAspectRatio: 1,
+                mainAxisExtent: cardSize,
+              ),
+              itemCount: cards.length,
+              itemBuilder: (context, index) {
+                return _buildCard(index, showCard: isShowingCards, cardSize: cardSize);
+              },
             ),
-            itemCount: cards.length,
-            itemBuilder: (context, index) {
-              return _buildCard(index, cardSize: cardSize);
-            },
           ),
         );
       },
     );
   }
 
-  Widget _buildShowCardsView() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          AppLocalizations.of(context)!.rememberCards,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Text(
-          '$remainingSeconds saniye kaldı',
-          style: const TextStyle(
-            color: Colors.white70,
-            fontSize: 18,
-          ),
-        ),
-        const SizedBox(height: 30),
-        Expanded(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // Ekran boyutlarını al
-              final screenWidth = constraints.maxWidth;
-              final screenHeight = constraints.maxHeight;
-
-              // Padding ve spacing hesaplamaları
-              const horizontalPadding = 20.0;
-              const verticalPadding = 20.0;
-              const cardSpacing = 10.0;
-
-              // Kullanılabilir alan
-              final availableWidth = screenWidth - (horizontalPadding * 2);
-              final availableHeight = screenHeight - (verticalPadding * 2);
-
-              // Grid boyutları
-              final columns = widget.difficulty.columns;
-              final rows = widget.difficulty.rows;
-
-              // Kart boyutlarını hesapla
-              final cardWidth =
-                  (availableWidth - (cardSpacing * (columns - 1))) / columns;
-              final cardHeight =
-                  (availableHeight - (cardSpacing * (rows - 1))) / rows;
-
-              // En küçük boyutu kullan (kare şeklinde kalmak için)
-              final cardSize = cardWidth < cardHeight ? cardWidth : cardHeight;
-
-              return Container(
-                padding: const EdgeInsets.all(horizontalPadding),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: columns,
-                    crossAxisSpacing: cardSpacing,
-                    mainAxisSpacing: cardSpacing,
-                    childAspectRatio: 1,
-                    mainAxisExtent: cardSize, // Sabit yükseklik belirle
-                  ),
-                  itemCount: cards.length,
-                  itemBuilder: (context, index) {
-                    return _buildCard(index,
-                        showCard: true, cardSize: cardSize);
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCard(int index, {bool showCard = false, double? cardSize}) {
     final card = cards[index];
     final isFlipped = showCard || card.isFlipped || card.isMatched;
-
-    // Kart boyutunu hesapla
     final size = cardSize ?? 100.0;
-    final borderRadius = size * 0.1; // Kart boyutunun %10'u kadar border radius
-    final iconSize = size * 0.3; // Kart boyutunun %30'u kadar icon boyutu
+    final borderRadius = size * 0.15;
+    final iconSize = size * 0.4;
 
     return GestureDetector(
       onTap: isGameStarted && !card.isMatched && !card.isFlipped
           ? () => _onCardTap(index)
           : null,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        decoration: BoxDecoration(
-          color: isFlipped ? Colors.white : const Color(0xFF4A5568),
-          borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 5,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutBack,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.001)
+          ..rotateY(isFlipped ? 0 : pi),
+        transformAlignment: Alignment.center,
         child: isFlipped
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(borderRadius),
-                child: Image.asset(
-                  card.imagePath,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: Icon(
-                        Icons.image_not_supported,
-                        size: iconSize,
-                        color: Colors.grey,
+            ? Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..rotateY(0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  },
-                ),
-              )
-            : Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(borderRadius),
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF4A5568),
-                      Color(0xFF2D3748),
                     ],
                   ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    child: Image.asset(
+                      card.imagePath,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Center(
+                          child: Icon(
+                            Icons.image_not_supported_rounded,
+                            size: iconSize,
+                            color: Colors.grey[400],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                child: Icon(
-                  Icons.help_outline,
-                  color: Colors.white70,
-                  size: iconSize,
+              )
+            : Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()..rotateY(pi),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.mainGradient,
+                    borderRadius: BorderRadius.circular(borderRadius),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.question_mark_rounded,
+                      color: Colors.white.withOpacity(0.8),
+                      size: iconSize,
+                    ),
+                  ),
                 ),
               ),
       ),
@@ -342,32 +324,31 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    return GlassContainer(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          ElevatedButton.icon(
+          GameButton(
+            text: AppLocalizations.of(context)!.restart,
+            icon: Icons.refresh_rounded,
             onPressed: _restartGame,
-            icon: const Icon(Icons.refresh),
-            label: Text(AppLocalizations.of(context)!.restart),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF667eea),
-            ),
+            width: 140,
+            height: 50,
+            color: AppTheme.secondaryColor,
           ),
-          ElevatedButton.icon(
+          GameButton(
+            text: AppLocalizations.of(context)!.home,
+            icon: Icons.home_rounded,
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.home),
-            label: Text(AppLocalizations.of(context)!.home),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: const Color(0xFF667eea),
-            ),
+            width: 140,
+            height: 50,
+            color: AppTheme.primaryColor,
           ),
         ],
       ),
-    );
+    ).animate().slideY(begin: 1, end: 0);
   }
 
   void _onCardTap(int index) {
@@ -389,7 +370,6 @@ class _GameScreenState extends State<GameScreen> {
     final card2 = cards[flippedCards[1]];
 
     if (card1.id == card2.id) {
-      // Eşleşme bulundu
       setState(() {
         cards[flippedCards[0]] = card1.copyWith(isMatched: true);
         cards[flippedCards[1]] = card2.copyWith(isMatched: true);
@@ -398,12 +378,10 @@ class _GameScreenState extends State<GameScreen> {
 
       flippedCards.clear();
 
-      // Oyun bitti mi kontrol et
       if (_isGameCompleted()) {
         _showGameCompletedDialog();
       }
     } else {
-      // Eşleşme bulunamadı
       Timer(const Duration(milliseconds: 1000), () {
         setState(() {
           cards[flippedCards[0]] = card1.copyWith(isFlipped: false);
@@ -419,55 +397,97 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _showGameCompletedDialog() async {
-    // Puanı kaydet
     await ScoreService.addGameScore(score);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.congrats),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(AppLocalizations.of(context)!.youFinished),
-            const SizedBox(height: 10),
-            Text(AppLocalizations.of(context)!.score + ': $score'),
-            Text(AppLocalizations.of(context)!.moves + ': $moves'),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: GlassContainer(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.emoji_events_rounded,
+                size: 80,
+                color: Colors.amber,
+              ).animate().scale(curve: Curves.elasticOut, duration: 800.ms).shimmer(),
+              
+              const SizedBox(height: 20),
+              
+              Text(
+                AppLocalizations.of(context)!.congrats,
+                style: AppTheme.displayMedium.copyWith(color: AppTheme.secondaryColor),
               ),
-              child: Text(
-                '+$score ${AppLocalizations.of(context)!.points}!',
-                style: const TextStyle(
-                  color: Colors.green,
-                  fontWeight: FontWeight.bold,
+              
+              const SizedBox(height: 10),
+              
+              Text(
+                AppLocalizations.of(context)!.youFinished,
+                style: AppTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+              
+              const SizedBox(height: 20),
+              
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    _buildResultRow(AppLocalizations.of(context)!.score, '$score'),
+                    const Divider(color: Colors.white24),
+                    _buildResultRow(AppLocalizations.of(context)!.moves, '$moves'),
+                  ],
                 ),
               ),
-            ),
-          ],
+              
+              const SizedBox(height: 30),
+              
+              GameButton(
+                text: AppLocalizations.of(context)!.playAgain,
+                icon: Icons.replay_rounded,
+                onPressed: () {
+                  Navigator.pop(context);
+                  _restartGame();
+                },
+                width: double.infinity,
+              ),
+              
+              const SizedBox(height: 10),
+              
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  AppLocalizations.of(context)!.home,
+                  style: AppTheme.bodyMedium,
+                ),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _restartGame();
-            },
-            child: Text(AppLocalizations.of(context)!.playAgain),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
-            },
-            child: Text(AppLocalizations.of(context)!.home),
-          ),
-        ],
       ),
+    );
+  }
+
+  Widget _buildResultRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTheme.bodyMedium),
+        Text(
+          value,
+          style: AppTheme.bodyLarge.copyWith(color: AppTheme.tertiaryColor),
+        ),
+      ],
     );
   }
 

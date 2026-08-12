@@ -86,7 +86,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get expert => 'Expert';
 
   @override
-  String get restart => 'Tekrar Başlat';
+  String get restart => 'Tekrar';
 
   @override
   String get points => 'Points';

@@ -168,7 +168,7 @@ class GameService {
     // Her görsel için iki kart oluştur
     for (final imageName in selectedImages) {
       final imagePath = '${category.assetPath}$imageName';
-      print('Adding card image: $imagePath');
+      //print('Adding card image: $imagePath');
       cards.add(GameCard(
         imagePath: imagePath,
         id: cardId,
